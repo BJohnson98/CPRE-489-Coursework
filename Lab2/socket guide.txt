@@ -1,0 +1,86 @@
+Guide for creating sockets program.
+
+Goal: fill data structure with all parameters.
+
+Sockets Structure parameters:
+- Family
+- Protocol
+- Local IP
+- Local port #
+- Remote IP
+- Remote Port #
+
+TCP:
+
+Server:
+-------
+1 - Create a socket. ie sersock, fills first two parameters of socket data structure
+2 - Step endpoint address for server socket. Next two fields of data structure.
+
+byte order:
+example port 80 --> 0x0050. 2 bytes here. 
+which one of the bytes above will be sent first? for internet we have network byte order.
+network byte order is big endian. Most significant byte is transported first. 
+is example above, byte 0x00 sent first, then 0x50 sent after.
+
+ie port[0] = 00;
+   port[1] = 50;
+
+3 - bind/assign address/port to socket.
+	*After this step, we have first 4 parameters of the data structure.
+	 need to wait for client to connect before we can get the info.
+
+4 - passive mode socket.
+5 - wait to accept connection.
+
+6 - Data communication.
+7 - close the consock.
+
+Client Side:
+1 - Create a socket.
+2 - specify endpoint.
+3 - assign to socket.
+
+* Skip steps 2 and 3 in client code. we leave it to the system
+
+4 - connect to the server.
+5 - Data communication.
+(Loop to insure all data transfered.)
+6 - close the socket.
+
+* Process is similiar to File IO.
+
+
+--------------------------------------
+UDP Sockets:
+
+Server Side:
+1. create server socket; sersock(pf_inet, sock_dgram, 0);
+2. bind
+3. data communication. recvfrom().
+
+
+no sample code for udp, but much easier.
+
+
+
+-Written by daji to create conncurrent service.
+
+
+while(1){
+	consock = accept(...)
+	if( (pid=fork()) == 0){
+		 close(sersock);
+		 read()
+		 write()
+		close(consock)
+		exit(0)
+	}
+	close(consock)
+}
+
+
+pid = process, fork means to just create a copy of the consock.
+once the copy is created, kill the original proccess. this
+allows the sersock to always listen to processes. this is more practical.
+

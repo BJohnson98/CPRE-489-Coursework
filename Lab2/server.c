@@ -3,10 +3,14 @@
 #include <sys/sysinfo.h>
 #include <sys/types.h>
 #include <netinet/in.h>
+#include <time.h>
 
 struct sockaddr_in serveraddr, clientaddr;
 
 int main(){
+	struct tm* timeinfo;
+	time_t rawtime;
+	char buffer[80];
 	int sersock, consock;
 	int len = sizeof(clientaddr);
 	char IP_ADDRESS[16] = "127.0.0.1";
@@ -15,21 +19,26 @@ int main(){
 	
 	struct sysinfo s_info;
 
-   	int time = s_info.uptime;
+	time(&rawtime);
+	timeinfo = localtime(&rawtime);
+	strftime(buffer, 80, "%I:%M%p", timeinfo);
+	
+   	int time_info = s_info.uptime;
 	//convert time to seconds days, hours, minutes, and seconds
-	int days = time / ( 24*3600);
-	int hours = time % (24*3600)/3600;
-	int minutes = (time % (24*3600*3600))/60;
-	int seconds = (time % (24*3600*3600*60))/60;
+	int days = time_info / ( 24*3600);
+	int hours = time_info % (24*3600)/3600;
+	int minutes = (time_info % (24*3600*3600))/60;
+	int seconds = (time_info % (24*3600*3600*60))/60;
 
 	//put the system info into string called message
 	sprintf(message,"%s:",IP_ADDRESS);
+	sprintf(messafe,"%s %s up", message, buffer);
 	if(days > 0){ sprintf(message,"%s %d days,",message, days); }
 	if(hours > 0){ sprintf(message,"%s %d hours,",message, hours); }
 	if(minutes > 0){ sprintf(message,"%s %d minutes,",message, minutes); }
 	if(seconds > 0){ sprintf(message,"%s %d seconds,",message, seconds); }	
 	// load averages
-	sprintf(message,"%s load average: %lu, %lu, %lu",message, loads[0], loads[1], loads[2]);
+	sprintf(message,"%s, 1user, load average: %lu, %lu, %lu",message, loads[0], loads[1], loads[2]);
 
 	//step one:
 	// pf_inet means communication through internet.

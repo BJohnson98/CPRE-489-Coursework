@@ -15,13 +15,13 @@ int main(){
 	
 	struct sysinfo s_info;
 
-    int time = s_info.uptime;
-    //convert time to seconds days, hours, minutes, and seconds
+   	int time = s_info.uptime;
+	//convert time to seconds days, hours, minutes, and seconds
 	int days = time / ( 24*3600);
 	int hours = time % (24*3600)/3600;
-  	int minutes = (time % (24*3600*3600))/60;
-    	int seconds = (time % (24*3600*3600*60))/60;
-	
+	int minutes = (time % (24*3600*3600))/60;
+	int seconds = (time % (24*3600*3600*60))/60;
+
 	//put the system info into string called message
 	sprintf(message,"%s:",IP_ADDRESS);
 	if(days > 0){ sprintf(message,"%s %d days,",message, days); }
@@ -30,7 +30,7 @@ int main(){
 	if(seconds > 0){ sprintf(message,"%s %d seconds,",message, seconds); }	
 	// load averages
 	sprintf(message,"%s load average: %lu, %lu, %lu",message, loads[0], loads[1], loads[2]);
-	
+
 	//step one:
 	// pf_inet means communication through internet.
 	// Sock stream means tcp socket. 0 means default protocol type which means tcp.

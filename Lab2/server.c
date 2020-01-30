@@ -19,8 +19,8 @@ int main(){
     //convert time to seconds days, hours, minutes, and seconds
 	int days = time / ( 24*3600);
 	int hours = time % (24*3600)/3600;
-    int minutes = (time % (24*3600*3600))/60;
-    int seconds = (time % (24*3600*3600*60))/60;
+  	int minutes = (time % (24*3600*3600))/60;
+    	int seconds = (time % (24*3600*3600*60))/60;
 	
 	//put the system info into string called message
 	sprintf(message,"%s:",IP_ADDRESS);

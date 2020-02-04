@@ -8,38 +8,21 @@
 struct sockaddr_in serveraddr, clientaddr;
 
 int main(){
-	struct tm* timeinfo;
-	time_t rawtime;
-	char buffer[80];
 	int sersock, consock;
 	int len = sizeof(clientaddr);
 	char IP_ADDRESS[16] = "127.0.0.1";
 	int server_port = 9388;
 	char message[128];
+	char up[128];
+
+	FILE *fp;
+	fp = popen("uptime", "r");
+	while(fgets(up, sizeof(up), fp) != NULL){
+	//	printf("%s", up);
+	}
+	pclose(fp);
+	sprintf(message, "%s:%s", IP_ADDRESS, up);
 	
-	struct sysinfo s_info;
-
-	time(&rawtime);
-	timeinfo = localtime(&rawtime);
-	strftime(buffer, 80, "%I:%M%p", timeinfo);
-	
-   	int time_info = s_info.uptime;
-	//convert time to seconds days, hours, minutes, and seconds
-	int days = time_info / ( 24*3600);
-	int hours = time_info % (24*3600)/3600;
-	int minutes = (time_info % (24*3600*3600))/60;
-	int seconds = (time_info % (24*3600*3600*60))/60;
-
-	//put the system info into string called message
-	sprintf(message,"%s:",IP_ADDRESS);
-	sprintf(messafe,"%s %s up", message, buffer);
-	if(days > 0){ sprintf(message,"%s %d days,",message, days); }
-	if(hours > 0){ sprintf(message,"%s %d hours,",message, hours); }
-	if(minutes > 0){ sprintf(message,"%s %d minutes,",message, minutes); }
-	if(seconds > 0){ sprintf(message,"%s %d seconds,",message, seconds); }	
-	// load averages
-	sprintf(message,"%s, 1user, load average: %lu, %lu, %lu",message, loads[0], loads[1], loads[2]);
-
 	//step one:
 	// pf_inet means communication through internet.
 	// Sock stream means tcp socket. 0 means default protocol type which means tcp.

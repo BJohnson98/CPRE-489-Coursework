@@ -1,80 +1,73 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <sys/socket.h>
-#include <sys/sysinfo.h>
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <time.h>
 
-struct sockaddr_in serveraddr, clientaddr;
+struct sockaddr_in serveraddr;
+struct sockaddr_in clientaddr;
 
-int main(){
-	int sersock, consock;
-	int len = sizeof(clientaddr);
-	char IP_ADDRESS[16] = "127.0.0.1";
-	int server_port = 9388;
-	char message[128];
-	char up[128];
+int main(int argc, char **argv){
+  int hsock, bind_status, recieve_status, send_status, randnum;
+  char buf[1024];
+  
+  srand(time(0));
 
-	FILE *fp;
-	fp = popen("uptime", "r");
-	while(fgets(up, sizeof(up), fp) != NULL){
-	//	printf("%s", up);
-	}
-	pclose(fp);
-	sprintf(message, "%s:%s", IP_ADDRESS, up);
-	
-	//step one:
-	// pf_inet means communication through internet.
-	// Sock stream means tcp socket. 0 means default protocol type which means tcp.
-	if((sersock = socket(PF_INET, SOCK_STREAM, 0)) < 0 ){
-		perror("socket() error:\n");
-		return 0;
-	}
+  //take command line arguments and put them in variables:
+  char listener_ip[16], destination_ip[16];
+  strcpy(listener_ip, argv[1]);
+  int listener_port = atoi(argv[2]);
+  strcpy(destination_ip, argv[3]);
+  int destination_port = atoi(argv[4]);
+  int loss_rate = atoi( argv[5]);
 
-	//Step two:
-	// Specify endpoint address for server socket.
-	serveraddr.sin_family = PF_INET;
-	//specify port number, htons helps specify byte order.
-	// htons() -> h = host to n= network s = short; 2bytes. htonl -> l = long; 4 bytes
-	serveraddr.sin_port = htons(server_port);
-	serveraddr.sin_addr.s_addr = inet_addr(IP_ADDRESS);
-	serveraddr.sin_addr.s_addr = htonl(INADDR_ANY);
 
-	//Step 3: 
-	// bind assigns address and port to socket.
-	// after this step we have the first 4 parameters.
-	int bind_status = bind(sersock, (struct sockaddr *) &serveraddr, sizeof(serveraddr));
-	//exit if socket fails to bind.
-	if(bind_status != 0){
-		printf("failed to bind to port\nexiting...\n");
-		return 0;
-	}
-	
-	//Step 4:
-	// create passive mode socket
-	int listen_status = listen(sersock, 10);
-	//exit if listening fails
-	if(listen_status != 0){
-		printf("listening failed.\nexiting...\n");
-		return 0;	
-	}
+  //step one: 
+  //create socket for recieving data
+  if((hsock = socket(PF_INET, SOCK_DGRAM,0)) < 0){
+    printf("Socket Error\n");
+    return 0;
+  }
 
-	//we now have to wait for the client to connect to fill in the remote ip and remote port parameter.
-	printf("Listening for the client.\n");
-	
-	while(1){	
-		//the consock is created so we can connect to multiple clients at one time.
-		consock = accept(sersock, (struct sockaddr *) &clientaddr, &len);
+  //step two:
+  //specify endpoint addresses of vlc player we are listening to. 
+  serveraddr.sin_family = PF_INET;
+  serveraddr.sin_port = htons(listener_port);
+  serveraddr.sin_addr.s_addr = htonl(listener_ip);
 
-		//communication between server and client starts here	 		
-		write(consock,message,128);
-		
-		//communication between server and client ends here
-		close(consock);
-		break;
-	}
-	printf("sent message to client\n");
-	//close the socket
-	close(sersock);
-	return 0;
+  //specify endpoint address of the client
+  clientaddr.sin_family = PF_INET;
+  clientaddr.sin_port = htons(destination_port);
+ //inet addr??
+ clientaddr.sin_addr.s_addr = htonl(destination_ip);
+  
+  //bind to port
+  if((bind_status = bind(hsock, (struct sockaddr *) &serveraddr, sizeof(serveraddr))) < 0){
+     printf("Failed to bind to port\n");
+    return 0;
+  }
+
+  while(1){
+  
+    // recieve:
+    if((recieve_status = recvfrom(hsock,(char *)buf, 1024, MSG_WAITALL, (struct sockaddr *) &serveraddr, sizeof(serveraddr))) < 0){
+      printf("Recieve Failed\n");
+     // break;
+    }
+
+
+   //generate a random number 
+   randnum = rand() % 100;
+   //only send the packet if the random number is greater than the loss rate.
+   if(loss_rate < randnum){
+     if((send_status = sendto(hsock, (char *)buf, 1024, MSG_CONFIRM, (const struct sockaddr *) &clientaddr, sizeof(clientaddr))) < 0){
+       printf("Sending Failed\n");
+     //  break;
+     }
+                                            }
+   }
+close();
+  return 0;
 }

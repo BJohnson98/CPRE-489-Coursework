@@ -8,7 +8,7 @@
 
 void primary(int sockfd, double ber) {
 	int readSize;
-	int index = 0;
+	int index = 0, i;
 	int win[3] = {0,1,2};
     	char msg[DATA_LENGTH], srvReply[150];
 	unsigned char packet[PACKET_SIZE];
@@ -32,47 +32,60 @@ void primary(int sockfd, double ber) {
 		// we're sending to it
 //		buildPacket(packet, DATA_PACKET, msg, packetNum++);
 		
-		for(int i = 0; i < 13; i++){
+		for(i = 0; i < 13; i++){
 			fgets(msg, DATA_LENGTH+1, stdin);
-			buildPacket(packet, DATA_PACKET, msg, packetNum++);
+			buildPacket(buff[i].packet, DATA_PACKET, msg, packetNum++);
 			//Introduce error
-//			IntroduceError(packet, ber);
-			buff[i] = packet;
+//			IntroduceError(buff[i].packet[2], ber);
+			//buff[i].packet = packet;
 		}
 		
 		while(1){
 			//Sends the packets 
-			for(int i = 0; i < 3; i++){
-				if( send(sockfd , buff[arr[i]], PACKET_SIZE, 0) < 0)
+			for(i = 0; i < 3; i++){
+				if( send(sockfd , buff[win[i]].packet, PACKET_SIZE, 0) < 0)
 					perror("Send failed");
-			}
-			
-			//Receives the packets
-			for(int i = 0; i < 3; i++){
+
+
 				if( (readSize = recv(sockfd , srvReply , 149 , 0)) < 0)
 					perror("recv failed");
 				printf("Server's reply:\n");
 				printPacket(srvReply);
 			}
+			
+			//Receives the packets
+/*			for(i = 0; i < 3; i++){
+				if( (readSize = recv(sockfd , srvReply , 149 , 0)) < 0)
+					perror("recv failed");
+				printf("Server's reply:\n");
+				printPacket(srvReply);
+
+			}
+*/
+			if(srvReply[1] == 12)
+				break;
 			switch(srvReply[1] - index){
 				case 0:
 					break;
 				case 1:
-					shiftwindow(win, 3, 1);
+					shiftWindow(win, 3, 1);
 					index++;
 					break;
 				case 2:
-					shiftwindow(win, 3, 2);
+					shiftWindow(win, 3, 2);
 					index += 2;
 					break;
 				case 3:
-					shiftwindow(win, 3, 3);
+					shiftWindow(win, 3, 3);
 					index += 3;
+					break;
 				default:
-					printf("UNDEFINED");
+					printf("Seq#: %d\nindex: %d\n", srvReply[1], index);
+					break;
 			}
 			
 		}
+		break;
 		// 0 - Options and are not necessary here
 		// If return value < 0, an error occured
 //        if( send(sockfd , packet, PACKET_SIZE, 0) < 0)
@@ -97,4 +110,3 @@ void primary(int sockfd, double ber) {
     }
   
 }
-
